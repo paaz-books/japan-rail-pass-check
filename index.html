@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Compare a Japan Rail Pass, regional passes and single tickets for your own train rides.">
+<title>Rail Pass Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Shippori+Mincho:wght@600;700&display=swap">
+<style>
+/* Layout: one reading column in three cards (your party and prices, your rides, the verdict), same identity as the Japan Month Planner. Bar colors follow the book's figures: tickets dark, nationwide pass orange hatch, regional pass light blue. */
+:root{
+  --bg:#f4f5f8; --surface:#ffffff; --surface-2:#eceff5; --ink:#18203a; --muted:#566076; --line:#d6dbe5;
+  --accent:#2b4380; --accent-ink:#ffffff; --ring:#b45309;
+  --bar-tickets:#3a3a38; --bar-national:#eb6834; --bar-national-bg:#fbe1d6; --bar-regional:#a9c6e0; --bar-regional-line:#566076;
+  --good:#1f6b43; --good-bg:#e3f1e8; --close-bg:#fdf1e3; --close-line:#d98a2b;
+  --font-display:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",Georgia,serif;
+  --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f131b; --surface:#161c27; --surface-2:#1e2635; --ink:#e6eaf2; --muted:#9ba5b7; --line:#2a3345;
+    --accent:#9fb6ec; --accent-ink:#0f131b; --ring:#f2b35a;
+    --bar-tickets:#c9ccd4; --bar-national:#f08a5d; --bar-national-bg:#3a2419; --bar-regional:#4f76a3; --bar-regional-line:#9fb6ec;
+    --good:#8fd3a9; --good-bg:#16291f; --close-bg:#2d2215; --close-line:#f2b35a;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f131b; --surface:#161c27; --surface-2:#1e2635; --ink:#e6eaf2; --muted:#9ba5b7; --line:#2a3345;
+  --accent:#9fb6ec; --accent-ink:#0f131b; --ring:#f2b35a;
+  --bar-tickets:#c9ccd4; --bar-national:#f08a5d; --bar-national-bg:#3a2419; --bar-regional:#4f76a3; --bar-regional-line:#9fb6ec;
+  --good:#8fd3a9; --good-bg:#16291f; --close-bg:#2d2215; --close-line:#f2b35a;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.page{max-width:920px;margin:0 auto;padding-block:40px 72px;padding-inline:20px;display:grid;gap:28px}
+a{color:var(--accent);text-underline-offset:3px}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2{font-family:var(--font-display);font-weight:700;line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:clamp(2rem,5vw,2.8rem);letter-spacing:.01em}
+h2{font-size:1.35rem}
+p{margin:0}
+.intro{display:grid;gap:10px;max-width:66ch}
+.kicker{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.lede{font-size:1.08rem;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;display:grid;gap:14px;min-width:0}
+.card-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px}
+.hint{font-size:.86rem;color:var(--muted)}
+
+/* examples and settings */
+.examples{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.plabel{font-size:.8rem;color:var(--muted);margin-right:4px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:.85rem;cursor:pointer}
+.chip:hover{border-color:var(--accent)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.showing{font-size:.9rem;color:var(--muted)}
+.showing b{color:var(--ink);font-weight:600}
+.settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px 18px}
+.field{display:grid;gap:4px;font-size:.88rem;color:var(--muted);min-width:0}
+.field input,.field select{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:6px 10px;width:100%;color:var(--ink);font-variant-numeric:tabular-nums}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface-2);width:max-content;max-width:100%}
+.seg label{position:relative;cursor:pointer}
+.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.seg span{display:block;padding:6px 11px;font-size:.84rem;color:var(--muted);border-right:1px solid var(--line);white-space:nowrap}
+.seg label:last-child span{border-right:0}
+.seg input:checked + span{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.seg input:focus-visible + span{outline:2px solid var(--accent);outline-offset:-2px}
+
+/* rides */
+.rides{display:grid;gap:8px}
+.ride{display:grid;grid-template-columns:78px minmax(0,1fr) 116px 120px 104px 34px;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.ride .r-name{font-weight:500;line-height:1.35;min-width:0}
+.ride .r-cov{display:block;font-size:.78rem;color:var(--muted);font-weight:400;margin-top:2px}
+.ride input,.ride select{border:1px solid var(--line);background:var(--surface-2);border-radius:7px;padding:5px 8px;width:100%;font-variant-numeric:tabular-nums}
+.ride label{display:grid;gap:2px;font-size:.72rem;color:var(--muted);min-width:0}
+.r-cost{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.r-cost small{display:block;font-weight:400;font-size:.72rem;color:var(--muted)}
+.rm{border:1px solid var(--line);background:transparent;border-radius:8px;width:32px;height:32px;cursor:pointer;color:var(--muted);font-size:1.1rem;line-height:1}
+.rm:hover{border-color:var(--ring);color:var(--ring)}
+.empty{padding:14px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:.92rem}
+.add{display:grid;gap:10px;padding:14px;border-radius:10px;background:var(--surface-2)}
+.add-row{display:grid;grid-template-columns:minmax(0,1fr) 90px 140px auto;gap:10px;align-items:end}
+.btn{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:7px 14px;cursor:pointer;font-weight:600;white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--accent)}
+details.custom summary{cursor:pointer;font-size:.9rem;color:var(--accent)}
+.custom-grid{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:10px;margin-top:10px}
+.covers{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.85rem;margin-top:8px}
+.covers label{display:flex;gap:6px;align-items:center}
+
+/* verdict */
+.verdict{font-size:1.02rem}
+.verdict b{font-weight:600}
+.opts{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.opt{display:grid;gap:5px}
+.opt-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;align-items:baseline}
+.opt-label{font-weight:500}
+.opt-total{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.opt.best .opt-total{color:var(--good)}
+.tag{display:inline-block;font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:1px 8px;border-radius:999px;background:var(--good-bg);color:var(--good);margin-left:6px;vertical-align:1px}
+.bar{height:14px;background:var(--surface-2);border-radius:4px;overflow:hidden}
+.bar span{display:block;height:100%;border-radius:4px}
+.k-tickets .bar span{background:var(--bar-tickets)}
+.k-national .bar span{background:repeating-linear-gradient(45deg,var(--bar-national) 0 3px,var(--bar-national-bg) 3px 7px);box-shadow:inset 0 0 0 1.5px var(--bar-national)}
+.k-regional .bar span{background:var(--bar-regional);box-shadow:inset 0 0 0 1px var(--bar-regional-line)}
+.opt-meta{font-size:.84rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.close{border:1px solid var(--close-line);background:var(--close-bg);border-radius:10px;padding:14px 16px;display:grid;gap:8px}
+.close h3{margin:0;font-size:1rem}
+.close ol{margin:0;padding-left:1.2em;display:grid;gap:6px}
+.how{display:grid;gap:10px;max-width:70ch}
+.how ul{margin:0;padding-left:1.2em;display:grid;gap:6px}
+.foot{font-size:.84rem;color:var(--muted);display:grid;gap:6px;max-width:70ch}
+
+@media (max-width:720px){
+  .page{padding-inline:16px}
+  .card{padding:16px}
+  .ride{grid-template-columns:repeat(3,minmax(0,1fr)) 34px;grid-template-areas:"name name name rm" "day price times times" "cost cost cost cost";row-gap:8px}
+  .ride .r-name{grid-area:name}
+  .ride .rm{grid-area:rm;justify-self:end;align-self:start}
+  .ride .r-day{grid-area:day}
+  .ride .r-price{grid-area:price}
+  .ride .r-times{grid-area:times}
+  .ride .r-cost{grid-area:cost;text-align:right}
+  .ride .r-cost small{display:inline;margin-left:6px}
+  .add-row{grid-template-columns:1fr 1fr}
+  .add-row .a-ride{grid-column:1 / -1}
+  .custom-grid{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:no-preference){.bar span{transition:width .25s ease}}
+
+</style>
+</head>
+<body>
+
+
+<div class="page">
+  <header class="intro">
+    <p class="kicker">Companion to the book by paaz</p>
+    <h1>Rail Pass Check</h1>
+    <p class="lede">A Japan Rail Pass, a regional pass, or single tickets? List the train rides in your plan and see what each option costs for everyone traveling. Each pass is placed on the days where it covers the most.</p>
+  </header>
+
+  <section class="card" aria-labelledby="who-h">
+    <div class="card-head">
+      <h2 id="who-h">Your trip</h2>
+      <div class="examples" role="group" aria-label="Examples from the book"><span class="plabel">Examples</span><button type="button" class="chip" data-ex="A">Trip A, ten days for two</button><button type="button" class="chip" data-ex="A+">Trip A with a Hiroshima day</button><button type="button" class="chip" data-ex="B">Trip B, a family week</button><button type="button" class="chip" data-ex="C">Trip C, two weeks solo</button><button type="button" class="chip" id="clear">Clear rides</button></div>
+    </div>
+    <p class="showing" id="showing" aria-live="polite"></p>
+    <div class="settings">
+      <label class="field">Adults (12 and over)<input type="number" id="adults" min="0" max="20" step="1"></label>
+      <label class="field">Children (6 to 11)<input type="number" id="children" min="0" max="20" step="1"></label>
+      <div class="field"><span id="jrp-l">Japan Rail Pass price</span>
+        <div class="seg" role="radiogroup" aria-labelledby="jrp-l">
+          <label><input type="radio" name="jrp" id="jrp-online" value="online"><span>Official site ¥50,000</span></label>
+          <label><input type="radio" name="jrp" id="jrp-agency" value="agency"><span>Agencies ¥53,000</span></label>
+        </div>
+      </div>
+      <label class="field">Yen per US dollar<input type="number" id="rate" min="1" step="1"></label>
+    </div>
+    <p class="hint">Children under 6 ride free when they share a seat (up to two per paying passenger), so leave them out. Seven-day pass prices shown; the others follow the same choice.</p>
+  </section>
+
+  <section class="card" aria-labelledby="rides-h">
+    <div class="card-head"><h2 id="rides-h">Your train rides</h2><p class="hint">Adult one-way fare, reserved seat, regular season. Edit any fare.</p></div>
+    <div class="rides" id="rides"></div>
+    <div class="add">
+      <form id="add-form" class="add-row">
+        <label class="field a-ride">Add a ride<select id="add-ride"><optgroup label="Tokyo – Kansai"><option value="tokyo_kyoto">Tokyo – Kyoto (Nozomi) · ¥14,170</option><option value="tokyo_shinosaka">Tokyo – Shin-Osaka (Nozomi) · ¥14,720</option><option value="tokyo_hiroshima">Tokyo – Hiroshima (Nozomi) · ¥19,760</option><option value="tokyo_hakata">Tokyo – Hakata (Nozomi) · ¥23,810</option></optgroup><optgroup label="Around Tokyo"><option value="fuji">Shinjuku – Kawaguchiko, Mount Fuji (Fuji Excursion) · ¥4,190</option><option value="monorail">Hamamatsucho – Haneda Airport (Tokyo Monorail) · ¥520</option></optgroup><optgroup label="Hokuriku"><option value="tokyo_kanazawa">Tokyo – Kanazawa (Kagayaki) · ¥14,600</option><option value="kanazawa_kyoto">Kanazawa – Kyoto (Tsurugi, then Thunderbird) · ¥7,520</option><option value="kanazawa_osaka">Kanazawa – Osaka (Tsurugi, then Thunderbird) · ¥9,410</option></optgroup><optgroup label="Kansai"><option value="kyoto_nara">Kyoto – Nara (JR) · ¥720</option><option value="kyoto_osaka">Kyoto – Osaka (JR) · ¥580</option><option value="osaka_usj">Osaka – Universal City (JR) · ¥200</option><option value="haruka_osaka">Osaka or Shin-Osaka – Kansai Airport (Haruka, visitor ticket) · ¥1,800</option><option value="haruka_kyoto">Kyoto – Kansai Airport (Haruka, visitor ticket) · ¥2,200</option><option value="shinosaka_himeji">Shin-Osaka – Himeji (shinkansen) · ¥3,750</option></optgroup><optgroup label="Hiroshima"><option value="kyoto_hiroshima">Kyoto – Hiroshima (Nozomi) · ¥11,940</option><option value="shinosaka_hiroshima">Shin-Osaka – Hiroshima (Nozomi) · ¥10,950</option><option value="miyajima">Hiroshima – Miyajima (JR train and JR ferry) · ¥620</option></optgroup><optgroup label="Kyushu"><option value="shinosaka_hakata">Shin-Osaka – Hakata (Nozomi) · ¥16,020</option><option value="hakata_nagasaki">Hakata – Nagasaki (Relay Kamome, then Kamome) · ¥6,490</option><option value="hakata_kumamoto">Hakata – Kumamoto (shinkansen) · ¥6,040</option><option value="hakata_kagoshima">Hakata – Kagoshima-Chuo (shinkansen) · ¥11,950</option><option value="hakata_beppu">Hakata – Beppu (Sonic) · ¥5,680</option></optgroup><optgroup label="Hokkaido"><option value="cts_sapporo">New Chitose Airport – Sapporo (Rapid Airport) · ¥1,430</option><option value="sapporo_otaru">Sapporo – Otaru (JR) · ¥730</option><option value="sapporo_hakodate">Sapporo – Hakodate (Hokuto) · ¥9,440</option></optgroup></select></label>
+        <label class="field">Day of trip<input type="number" id="add-day" min="1" max="60" step="1" value="1"></label>
+        <label class="field">Trips<select id="add-times"><option value="1">One way</option><option value="2">Round trip</option></select></label>
+        <button type="submit" class="btn">Add ride</button>
+      </form>
+      <details class="custom">
+        <summary>Add a ride that isn't listed</summary>
+        <form id="custom-form">
+          <div class="custom-grid">
+            <label class="field">Ride<input type="text" id="c-name" placeholder="e.g. Tokyo – Nikko" maxlength="80"></label>
+            <label class="field">Adult fare, ¥<input type="number" id="c-price" min="0" step="10"></label>
+          </div>
+          <div class="covers" role="group" aria-label="Passes that cover this ride"><label><input type="checkbox" name="cov" value="JRP" checked> Japan Rail Pass</label><label><input type="checkbox" name="cov" value="KH"> Kansai-Hiroshima</label><label><input type="checkbox" name="cov" value="WIDE"> Kansai WIDE</label><label><input type="checkbox" name="cov" value="KHOK"> Kansai-Hokuriku</label><label><input type="checkbox" name="cov" value="ARCH"> Hokuriku Arch</label><label><input type="checkbox" name="cov" value="TW"> Tokyo Wide</label><label><input type="checkbox" name="cov" value="KYU"> All Kyushu</label><label><input type="checkbox" name="cov" value="HKD"> Hokkaido</label></div>
+          <p class="hint">Uses the day and trips chosen above. Check the operator's page for which passes cover the ride.</p>
+          <button type="submit" class="btn ghost">Add this ride</button>
+        </form>
+      </details>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="res-h">
+    <h2 id="res-h">What each option costs</h2>
+    <p class="verdict" id="verdict" aria-live="polite"></p>
+    <ol class="opts" id="results"></ol>
+    <div class="close" id="close" hidden>
+      <h3>It's close: <span id="close-gap"></span> separates the two cheapest</h3>
+      <p>Within about 10 percent, the difference is the price of what <span id="close-dearer"></span> gives you. Three questions decide it; if your answers split, take the cheaper option.</p>
+      <ol>
+        <li><b>Will you add rides as you go?</b> A pass makes extra rides inside its area and days free.</li>
+        <li><b>Do you need the fastest trains at the times you want?</b> The Japan Rail Pass leaves out the Nozomi and Mizuho unless you buy special tickets (¥4,960 between Tokyo and Kyoto). Between Tokyo and Osaka, up to 12 Nozomi an hour run at busy times, against 2 Hikari.</li>
+        <li><b>How much buying and booking will you put up with?</b> A pass is one purchase, picked up with your passport; tickets mean one booking per long ride.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="how" aria-labelledby="how-h">
+    <h2 id="how-h">How the check works</h2>
+    <p>Single tickets add up every ride. For each pass, the check finds the run of consecutive days, as long as the pass lasts, whose covered rides cost the most as tickets, and starts the pass there. The pass option is the pass price for everyone plus the rides outside those days as tickets.</p>
+    <ul>
+      <li>Rides on the Tokaido Shinkansen are priced as Nozomi tickets. The Japan Rail Pass covers them on the slower Hikari.</li>
+      <li>The Japan Rail Pass covers only the JR part of the Fuji Excursion, as far as Otsuki. The JR Tokyo Wide Pass covers the whole ride.</li>
+      <li>The Kansai-Hiroshima Area Pass doesn't cover the shinkansen between Kyoto and Shin-Osaka; from Kyoto, you ride the JR Kyoto Line to Shin-Osaka first.</li>
+      <li>Children's fares are half the adult fare, rounded down to ¥10, which can differ from JR's own rounding by a few yen.</li>
+      <li>Most of these passes are sold only to foreign visitors who enter Japan as tourists.</li>
+    </ul>
+  </section>
+
+  <footer class="foot">
+    <p>Fares are for adults, one way, with a reserved seat in the regular season, checked on September 30, 2026 on operator pages and route searches. Reserved seats cost ¥200 less on quiet days and ¥200 to ¥400 more in busy seasons. Check the operator's site before you buy. Your rides are saved in this browser only.</p>
+    <p>Also from the book: <a href="https://paaz-books.github.io/japan-month-planner/">Japan Month Planner</a>, for choosing when to go.</p>
+  </footer>
+</div>
+
+<script>
+window.RAILCHECK = {"rides": {"tokyo_kyoto": {"name": "Tokyo – Kyoto (Nozomi)", "group": "Tokyo – Kansai", "adult": 14170, "child": 7080, "cover": {"JRP": true}}, "tokyo_shinosaka": {"name": "Tokyo – Shin-Osaka (Nozomi)", "group": "Tokyo – Kansai", "adult": 14720, "child": 7350, "cover": {"JRP": true}}, "tokyo_hiroshima": {"name": "Tokyo – Hiroshima (Nozomi)", "group": "Tokyo – Kansai", "adult": 19760, "child": 9880, "cover": {"JRP": true}}, "tokyo_hakata": {"name": "Tokyo – Hakata (Nozomi)", "group": "Tokyo – Kansai", "adult": 23810, "child": 11900, "cover": {"JRP": true}}, "fuji": {"name": "Shinjuku – Kawaguchiko, Mount Fuji (Fuji Excursion)", "group": "Around Tokyo", "adult": 4190, "child": 2090, "cover": {"JRP": 2620, "TW": true}}, "monorail": {"name": "Hamamatsucho – Haneda Airport (Tokyo Monorail)", "group": "Around Tokyo", "adult": 520, "child": 260, "cover": {"JRP": true, "TW": true, "ARCH": true}}, "tokyo_kanazawa": {"name": "Tokyo – Kanazawa (Kagayaki)", "group": "Hokuriku", "adult": 14600, "child": 7300, "cover": {"JRP": true, "ARCH": true}}, "kanazawa_kyoto": {"name": "Kanazawa – Kyoto (Tsurugi, then Thunderbird)", "group": "Hokuriku", "adult": 7520, "child": 3760, "cover": {"JRP": true, "ARCH": true, "KHOK": true}}, "kanazawa_osaka": {"name": "Kanazawa – Osaka (Tsurugi, then Thunderbird)", "group": "Hokuriku", "adult": 9410, "child": 4700, "cover": {"JRP": true, "ARCH": true, "KHOK": true}}, "kyoto_nara": {"name": "Kyoto – Nara (JR)", "group": "Kansai", "adult": 720, "child": 360, "cover": {"JRP": true, "KH": true, "WIDE": true, "KHOK": true, "ARCH": true}}, "kyoto_osaka": {"name": "Kyoto – Osaka (JR)", "group": "Kansai", "adult": 580, "child": 290, "cover": {"JRP": true, "KH": true, "WIDE": true, "KHOK": true, "ARCH": true}}, "osaka_usj": {"name": "Osaka – Universal City (JR)", "group": "Kansai", "adult": 200, "child": 100, "cover": {"JRP": true, "KH": true, "WIDE": true, "KHOK": true, "ARCH": true}}, "haruka_osaka": {"name": "Osaka or Shin-Osaka – Kansai Airport (Haruka, visitor ticket)", "group": "Kansai", "adult": 1800, "child": 900, "cover": {"JRP": true, "KH": true, "WIDE": true, "KHOK": true, "ARCH": true}}, "haruka_kyoto": {"name": "Kyoto – Kansai Airport (Haruka, visitor ticket)", "group": "Kansai", "adult": 2200, "child": 1100, "cover": {"JRP": true, "KH": true, "WIDE": true, "KHOK": true, "ARCH": true}}, "shinosaka_himeji": {"name": "Shin-Osaka – Himeji (shinkansen)", "group": "Kansai", "adult": 3750, "child": 1870, "cover": {"JRP": true, "KH": true, "WIDE": true, "KHOK": true}}, "kyoto_hiroshima": {"name": "Kyoto – Hiroshima (Nozomi)", "group": "Hiroshima", "adult": 11940, "child": 5970, "cover": {"JRP": true, "KH": true}}, "shinosaka_hiroshima": {"name": "Shin-Osaka – Hiroshima (Nozomi)", "group": "Hiroshima", "adult": 10950, "child": 5470, "cover": {"JRP": true, "KH": true}}, "miyajima": {"name": "Hiroshima – Miyajima (JR train and JR ferry)", "group": "Hiroshima", "adult": 620, "child": 310, "cover": {"JRP": true, "KH": true}}, "shinosaka_hakata": {"name": "Shin-Osaka – Hakata (Nozomi)", "group": "Kyushu", "adult": 16020, "child": 8010, "cover": {"JRP": true}}, "hakata_nagasaki": {"name": "Hakata – Nagasaki (Relay Kamome, then Kamome)", "group": "Kyushu", "adult": 6490, "child": 3240, "cover": {"JRP": true, "KYU": true}}, "hakata_kumamoto": {"name": "Hakata – Kumamoto (shinkansen)", "group": "Kyushu", "adult": 6040, "child": 3020, "cover": {"JRP": true, "KYU": true}}, "hakata_kagoshima": {"name": "Hakata – Kagoshima-Chuo (shinkansen)", "group": "Kyushu", "adult": 11950, "child": 5970, "cover": {"JRP": true, "KYU": true}}, "hakata_beppu": {"name": "Hakata – Beppu (Sonic)", "group": "Kyushu", "adult": 5680, "child": 2840, "cover": {"JRP": true, "KYU": true}}, "cts_sapporo": {"name": "New Chitose Airport – Sapporo (Rapid Airport)", "group": "Hokkaido", "adult": 1430, "child": 710, "cover": {"JRP": true, "HKD": true}}, "sapporo_otaru": {"name": "Sapporo – Otaru (JR)", "group": "Hokkaido", "adult": 730, "child": 360, "cover": {"JRP": true, "HKD": true}}, "sapporo_hakodate": {"name": "Sapporo – Hakodate (Hokuto)", "group": "Hokkaido", "adult": 9440, "child": 4720, "cover": {"JRP": true, "HKD": true}}}, "passes": {"JRP7": {"label": "7-day Japan Rail Pass", "days": 7, "adult": 50000, "child": 25000, "agencyAdult": 53000, "agencyChild": 27000}, "JRP14": {"label": "14-day Japan Rail Pass", "days": 14, "adult": 80000, "child": 40000, "agencyAdult": 84000, "agencyChild": 42000}, "JRP21": {"label": "21-day Japan Rail Pass", "days": 21, "adult": 100000, "child": 50000, "agencyAdult": 105000, "agencyChild": 53000}, "KH": {"label": "Kansai-Hiroshima Area Pass", "days": 5, "adult": 17000, "child": 8500, "agencyAdult": null, "agencyChild": null}, "WIDE": {"label": "Kansai WIDE Area Pass", "days": 5, "adult": 12000, "child": 6000, "agencyAdult": null, "agencyChild": null}, "KHOK": {"label": "Kansai-Hokuriku Area Pass", "days": 7, "adult": 19000, "child": 9500, "agencyAdult": null, "agencyChild": null}, "ARCH": {"label": "Hokuriku Arch Pass", "days": 7, "adult": 35000, "child": 17500, "agencyAdult": null, "agencyChild": null}, "TW": {"label": "JR Tokyo Wide Pass", "days": 3, "adult": 16000, "child": 8000, "agencyAdult": null, "agencyChild": null}, "KYU3": {"label": "3-day All Kyushu Rail Pass", "days": 3, "adult": 22000, "child": 11000, "agencyAdult": null, "agencyChild": null}, "KYU5": {"label": "5-day All Kyushu Rail Pass", "days": 5, "adult": 24000, "child": 12000, "agencyAdult": null, "agencyChild": null}, "KYU7": {"label": "7-day All Kyushu Rail Pass", "days": 7, "adult": 26000, "child": 13000, "agencyAdult": null, "agencyChild": null}, "HKD5": {"label": "5-day Hokkaido Rail Pass", "days": 5, "adult": 22000, "child": 11000, "agencyAdult": null, "agencyChild": null}, "HKD7": {"label": "7-day Hokkaido Rail Pass", "days": 7, "adult": 28000, "child": 14000, "agencyAdult": null, "agencyChild": null}, "HKD10": {"label": "10-day Hokkaido Rail Pass", "days": 10, "adult": 37000, "child": 18500, "agencyAdult": null, "agencyChild": null}}, "families": {"JRP7": "JRP", "JRP14": "JRP", "JRP21": "JRP", "KH": "KH", "WIDE": "WIDE", "KHOK": "KHOK", "ARCH": "ARCH", "TW": "TW", "KYU3": "KYU", "KYU5": "KYU", "KYU7": "KYU", "HKD5": "HKD", "HKD7": "HKD", "HKD10": "HKD"}, "coverNames": {"JRP": "Japan Rail Pass", "KH": "Kansai-Hiroshima", "WIDE": "Kansai WIDE", "KHOK": "Kansai-Hokuriku", "ARCH": "Hokuriku Arch", "TW": "Tokyo Wide", "KYU": "All Kyushu", "HKD": "Hokkaido"}, "examples": {"A": {"label": "Trip A, ten days for two", "adults": 2, "children": 0, "rides": [{"day": 3, "key": "fuji", "times": 2}, {"day": 5, "key": "tokyo_kyoto", "times": 1}, {"day": 6, "key": "kyoto_nara", "times": 2}, {"day": 8, "key": "kyoto_osaka", "times": 1}, {"day": 10, "key": "tokyo_shinosaka", "times": 1}, {"day": 10, "key": "monorail", "times": 1}]}, "A+": {"label": "Trip A with a Hiroshima day", "adults": 2, "children": 0, "rides": [{"day": 3, "key": "fuji", "times": 2}, {"day": 5, "key": "tokyo_kyoto", "times": 1}, {"day": 6, "key": "kyoto_nara", "times": 2}, {"day": 8, "key": "kyoto_osaka", "times": 1}, {"day": 9, "key": "shinosaka_hiroshima", "times": 2}, {"day": 9, "key": "miyajima", "times": 2}, {"day": 10, "key": "tokyo_shinosaka", "times": 1}, {"day": 10, "key": "monorail", "times": 1}]}, "B": {"label": "Trip B, a family week", "adults": 2, "children": 2, "rides": [{"day": 5, "key": "tokyo_kyoto", "times": 1}, {"day": 5, "key": "kyoto_osaka", "times": 1}, {"day": 6, "key": "osaka_usj", "times": 2}, {"day": 7, "key": "haruka_osaka", "times": 1}]}, "C": {"label": "Trip C, two weeks solo", "adults": 1, "children": 0, "rides": [{"day": 5, "key": "tokyo_kanazawa", "times": 1}, {"day": 7, "key": "kanazawa_kyoto", "times": 1}, {"day": 8, "key": "kyoto_nara", "times": 2}, {"day": 10, "key": "kyoto_hiroshima", "times": 1}, {"day": 11, "key": "miyajima", "times": 2}, {"day": 12, "key": "shinosaka_hiroshima", "times": 1}, {"day": 14, "key": "haruka_osaka", "times": 1}]}}, "rate": 157};
+(function () {
+  "use strict";
+  var D = window.RAILCHECK;
+  var KEY = "japan-rail-pass-check-v1";
+  var FAM = D.families;
+  var S = null;
+
+  function clone(x) { return JSON.parse(JSON.stringify(x)); }
+  function presetRide(key, day, times) {
+    var p = D.rides[key];
+    return { day: day, key: key, name: p.name, adult: p.adult, child: p.child, times: times, cover: clone(p.cover) };
+  }
+  function fromExample(id) {
+    var ex = D.examples[id];
+    return {
+      example: id, adults: ex.adults, children: ex.children, jrp: "online", rate: D.rate,
+      rides: ex.rides.map(function (r) { return presetRide(r.key, r.day, r.times); })
+    };
+  }
+  function load() {
+    try {
+      var s = JSON.parse(localStorage.getItem(KEY));
+      if (s && Array.isArray(s.rides) && s.adults >= 0) return s;
+    } catch (e) { /* storage may be blocked */ }
+    return null;
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* ignore */ } }
+
+  function yen(n) { return "¥" + Math.round(n).toLocaleString("en-US"); }
+  function usd(n) {
+    var d = n / (S.rate > 0 ? S.rate : D.rate);
+    var step = d < 100 ? 5 : 10;
+    return "$" + (Math.round(d / step) * step).toLocaleString("en-US");
+  }
+  function half(v) { return Math.floor(v / 2 / 10) * 10; }
+  function childPrice(r) { return r.child != null ? +r.child : half(+r.adult); }
+  function people() { return (+S.adults || 0) + (+S.children || 0); }
+  function rideCost(r) { return ((+r.adult) * S.adults + childPrice(r) * S.children) * r.times; }
+  function coveredValue(r, fam) {
+    var c = r.cover && r.cover[fam];
+    if (!c) return 0;
+    if (c === true) return rideCost(r);
+    return ((+c) * S.adults + half(+c) * S.children) * r.times;
+  }
+  function passPrice(p) {
+    var agency = S.jrp === "agency" && p.agencyAdult;
+    var a = agency ? p.agencyAdult : p.adult, c = agency ? p.agencyChild : p.child;
+    return a * S.adults + c * S.children;
+  }
+
+  function compute() {
+    var rides = S.rides.filter(function (r) { return r.day >= 1 && r.adult >= 0; });
+    var tickets = rides.reduce(function (s, r) { return s + rideCost(r); }, 0);
+    var last = rides.reduce(function (m, r) { return Math.max(m, r.day); }, 1);
+    var opts = [{ id: "tickets", label: "Single tickets", total: tickets, kind: "tickets" }];
+    Object.keys(D.passes).forEach(function (id) {
+      var p = D.passes[id], fam = FAM[id], best = { v: 0, s: 1 };
+      for (var s = 1; s <= last; s++) {
+        var v = 0;
+        rides.forEach(function (r) { if (r.day >= s && r.day < s + p.days) v += coveredValue(r, fam); });
+        if (v > best.v) best = { v: v, s: s };
+      }
+      if (best.v <= 0 || people() === 0) return;
+      var total = passPrice(p) + tickets - best.v;
+      var alone = best.v >= tickets;
+      var label = alone ? p.label : (fam === "JRP" ? p.label + " + tickets" : "Tickets + " + p.label);
+      opts.push({ id: id, label: label, total: total, start: best.s, end: best.s + p.days - 1,
+                  covered: best.v, kind: fam === "JRP" ? "national" : "regional" });
+    });
+    opts.sort(function (a, b) { return a.total - b.total || (a.id === "tickets" ? -1 : 1); });
+    return { tickets: tickets, opts: opts };
+  }
+
+  function el(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function coverText(cover) {
+    var names = Object.keys(cover || {}).filter(function (k) { return cover[k]; }).map(function (k) {
+      return D.coverNames[k] + (cover[k] === true ? "" : " (part)");
+    });
+    return names.length ? "Covered by: " + names.join(" · ") : "No pass covers this ride";
+  }
+
+  function renderSettings() {
+    el("adults").value = S.adults;
+    el("children").value = S.children;
+    el("rate").value = S.rate;
+    document.querySelectorAll('input[name="jrp"]').forEach(function (i) { i.checked = i.value === S.jrp; });
+    document.querySelectorAll(".chip[data-ex]").forEach(function (b) { b.classList.toggle("on", b.dataset.ex === S.example); });
+    el("showing").innerHTML = S.example
+      ? "Showing an example from the book: <b>" + esc(D.examples[S.example].label) + "</b>. Change anything to make it your trip."
+      : "Showing <b>your trip</b>.";
+  }
+
+  function renderRides() {
+    var box = el("rides");
+    if (!S.rides.length) {
+      box.innerHTML = '<p class="empty">No rides yet. Add each train ride in your plan below, with the day of the trip it falls on.</p>';
+      return;
+    }
+    var order = S.rides.map(function (r, i) { return i; }).sort(function (a, b) { return S.rides[a].day - S.rides[b].day || a - b; });
+    box.innerHTML = order.map(function (i) {
+      var r = S.rides[i];
+      return '<div class="ride" data-i="' + i + '">' +
+        '<label class="r-day">Day<input type="number" min="1" max="60" step="1" data-f="day" value="' + r.day + '" aria-label="Day of trip"></label>' +
+        '<div class="r-name">' + esc(r.name) + '<span class="r-cov">' + esc(coverText(r.cover)) + "</span></div>" +
+        '<label class="r-price">Adult fare, ¥<input type="number" min="0" step="10" data-f="adult" value="' + r.adult + '" aria-label="Adult fare in yen"></label>' +
+        '<label class="r-times">Trips<select data-f="times" aria-label="One way or round trip">' +
+        '<option value="1"' + (r.times === 1 ? " selected" : "") + ">One way</option>" +
+        '<option value="2"' + (r.times === 2 ? " selected" : "") + ">Round trip</option></select></label>" +
+        '<div class="r-cost">' + yen(rideCost(r)) + "<small>" + (people() > 1 ? "for everyone" : "one person") + "</small></div>" +
+        '<button type="button" class="rm" data-rm="' + i + '" aria-label="Remove ' + esc(r.name) + '">×</button>' +
+        "</div>";
+    }).join("");
+  }
+
+  function renderResults() {
+    var res = compute(), opts = res.opts, box = el("results");
+    if (!S.rides.length || res.tickets === 0) {
+      box.innerHTML = '<p class="empty">Add rides to see how single tickets compare with the passes.</p>';
+      el("verdict").textContent = "";
+      el("close").hidden = true;
+      return;
+    }
+    var best = opts[0], n = people();
+    var max = opts.slice(0, 8).reduce(function (m, o) { return Math.max(m, o.total); }, 1);
+    var each = n > 1 && S.children === 0;
+    box.innerHTML = opts.slice(0, 8).map(function (o, idx) {
+      var extra = o.total - best.total;
+      var pct = best.total ? Math.round(extra / best.total * 1000) / 10 : 0;
+      var meta = [];
+      if (o.start) meta.push("Pass on days " + o.start + "–" + o.end + ", covering " + yen(o.covered) + " of rides");
+      if (idx > 0) meta.push("+" + yen(extra) + " (" + pct + "%) over the cheapest");
+      if (each) meta.push(yen(o.total / n) + " each");
+      return '<li class="opt k-' + o.kind + (idx === 0 ? " best" : "") + '">' +
+        '<div class="opt-head"><span class="opt-label">' + esc(o.label) + (idx === 0 ? '<span class="tag">Cheapest</span>' : "") + "</span>" +
+        '<span class="opt-total">' + yen(o.total) + " (" + usd(o.total) + ")</span></div>" +
+        '<div class="bar" aria-hidden="true"><span style="width:' + Math.max(2, o.total / max * 100).toFixed(1) + '%"></span></div>' +
+        '<div class="opt-meta">' + meta.join(" · ") + "</div></li>";
+    }).join("");
+    var who = n === 1 ? "" : " for " + n + " people";
+    var v = "Cheapest" + who + ": <b>" + esc(best.label) + "</b>, " + yen(best.total) + " (" + usd(best.total) + ").";
+    var second = opts[1];
+    if (second) {
+      var gap = second.total - best.total, gp = Math.round(gap / best.total * 1000) / 10;
+      v += " Next: " + esc(second.label) + ", " + yen(gap) + " (" + usd(gap) + ", " + gp + "%) more.";
+      el("close").hidden = !(gap <= best.total * 0.10);
+      el("close-gap").textContent = yen(gap) + " (" + usd(gap) + ")";
+      el("close-dearer").textContent = second.label;
+    } else {
+      el("close").hidden = true;
+    }
+    el("verdict").innerHTML = v;
+  }
+
+  function render() { renderSettings(); renderRides(); renderResults(); save(); }
+  function touched() { S.example = null; }
+
+  function wire() {
+    document.querySelectorAll(".chip[data-ex]").forEach(function (b) {
+      b.addEventListener("click", function () { S = fromExample(b.dataset.ex); render(); });
+    });
+    el("clear").addEventListener("click", function () { S.rides = []; touched(); render(); });
+    ["adults", "children", "rate"].forEach(function (id) {
+      el(id).addEventListener("change", function () {
+        var v = Math.max(0, Math.round(+el(id).value || 0));
+        if (id === "rate" && v < 1) v = D.rate;
+        S[id] = v; touched(); render();
+      });
+    });
+    document.querySelectorAll('input[name="jrp"]').forEach(function (i) {
+      i.addEventListener("change", function () { S.jrp = i.value; render(); });
+    });
+    el("rides").addEventListener("change", function (e) {
+      var t = e.target, row = t.closest(".ride");
+      if (!row || !t.dataset.f) return;
+      var r = S.rides[+row.dataset.i], v = Math.max(0, Math.round(+t.value || 0));
+      if (t.dataset.f === "day") r.day = Math.max(1, v);
+      if (t.dataset.f === "adult") { r.adult = v; r.child = null; }
+      if (t.dataset.f === "times") r.times = v === 2 ? 2 : 1;
+      touched(); render();
+    });
+    el("rides").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-rm]");
+      if (!b) return;
+      S.rides.splice(+b.dataset.rm, 1); touched(); render();
+    });
+    el("add-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var key = el("add-ride").value;
+      if (!key) return;
+      S.rides.push(presetRide(key, Math.max(1, Math.round(+el("add-day").value || 1)), +el("add-times").value === 2 ? 2 : 1));
+      touched(); render();
+    });
+    el("custom-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var name = el("c-name").value.trim(), adult = Math.max(0, Math.round(+el("c-price").value || 0));
+      if (!name || !adult) return;
+      var cover = {};
+      document.querySelectorAll('#custom-form input[name="cov"]:checked').forEach(function (c) { cover[c.value] = true; });
+      S.rides.push({ day: Math.max(1, Math.round(+el("add-day").value || 1)), key: null, name: name, adult: adult,
+                     child: null, times: +el("add-times").value === 2 ? 2 : 1, cover: cover });
+      el("c-name").value = ""; el("c-price").value = "";
+      touched(); render();
+    });
+  }
+
+  S = load() || fromExample("A");
+  wire();
+  render();
+})();
+
+</script>
+
+</body>
+</html>
