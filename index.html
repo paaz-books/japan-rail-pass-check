@@ -62,7 +62,8 @@ p{margin:0}
 .settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px 18px}
 .field{display:grid;gap:4px;font-size:.88rem;color:var(--muted);min-width:0}
 .field input,.field select{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:6px 10px;width:100%;color:var(--ink);font-variant-numeric:tabular-nums}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface-2);width:max-content;max-width:100%}
+.field.full{grid-column:1 / -1}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface-2);width:max-content;max-width:100%}
 .seg label{position:relative;cursor:pointer}
 .seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
 .seg span{display:block;padding:6px 11px;font-size:.84rem;color:var(--muted);border-right:1px solid var(--line);white-space:nowrap}
@@ -152,15 +153,15 @@ details.custom summary{cursor:pointer;font-size:.9rem;color:var(--accent)}
     <div class="settings">
       <label class="field">Adults (12 and over)<input type="number" id="adults" min="0" max="20" step="1"></label>
       <label class="field">Children (6 to 11)<input type="number" id="children" min="0" max="20" step="1"></label>
-      <div class="field"><span id="jrp-l">Japan Rail Pass price</span>
+      <label class="field">Yen per US dollar<input type="number" id="rate" min="1" step="1"></label>
+      <div class="field full"><span id="jrp-l">Japan Rail Pass price (7 days, adult)</span>
         <div class="seg" role="radiogroup" aria-labelledby="jrp-l">
           <label><input type="radio" name="jrp" id="jrp-online" value="online"><span>Official site ¥50,000</span></label>
           <label><input type="radio" name="jrp" id="jrp-agency" value="agency"><span>Agencies ¥53,000</span></label>
         </div>
       </div>
-      <label class="field">Yen per US dollar<input type="number" id="rate" min="1" step="1"></label>
     </div>
-    <p class="hint">Children under 6 ride free when they share a seat (up to two per paying passenger), so leave them out. Seven-day pass prices shown; the others follow the same choice.</p>
+    <p class="hint">Children under 6 ride free when they share a seat (up to two per paying passenger), so leave them out. The 14- and 21-day passes follow the same price choice.</p>
   </section>
 
   <section class="card" aria-labelledby="rides-h">
